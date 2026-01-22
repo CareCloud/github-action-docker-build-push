@@ -223,7 +223,6 @@ runs:
         build-args: ${{ inputs.build-args }}
         build-contexts: ${{ inputs.build-contexts }}
         cache-from: ${{ inputs.cache-from }}
-        cache-to: ${{ inputs.cache-to }}
         no-cache: ${{ inputs.no-cache }}
         tags: ${{ steps.meta.outputs.tags }}
         target: ${{ inputs.target }}
