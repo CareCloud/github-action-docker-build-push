@@ -97,6 +97,14 @@ inputs:
     description: "Set to `true` to tag images with the PR HEAD SHA instead of the merge commit SHA within pull requests."
     required: false
     default: "false"
+  enable-sha-tags:
+    description: "Set to `false` to omit the default commit-sha tags (short and long form). Useful when rebuilding an already-built commit for a different purpose/tag namespace, where writing the shared sha-<commit> tag again would collide with an earlier build of the same commit."
+    required: false
+    default: "true"
+  custom-tags-only:
+    description: "Set to `true` to skip every automatically computed tag (sha, schedule, branch/PR ref, semver, latest) and push only the tags passed via the `tags` input. Useful when rebuilding an already-built commit/branch for a different purpose/tag namespace, where any of those automatic tags could collide with an earlier build of the same commit or branch."
+    required: false
+    default: "false"
   inspect:
     description: "Set to `true` will pull and inspect the image and output it to the step summary."
     required: false
@@ -146,15 +154,15 @@ runs:
         # generate Docker tags based on the following events/attributes
         # we set sha as higher priority than the defaults, so that it is the first tag
         tags: |
-          type=sha
-          type=schedule
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
-          type=raw,value=latest,enable={{is_default_branch}}
-          type=sha,format=long,priority=1001
+          ${{ inputs.custom-tags-only != 'true' && inputs.enable-sha-tags == 'true' && 'type=sha' || '' }}
+          ${{ inputs.custom-tags-only != 'true' && 'type=schedule' || '' }}
+          ${{ inputs.custom-tags-only != 'true' && 'type=ref,event=branch' || '' }}
+          ${{ inputs.custom-tags-only != 'true' && 'type=ref,event=pr' || '' }}
+          ${{ inputs.custom-tags-only != 'true' && 'type=semver,pattern={{version}}' || '' }}
+          ${{ inputs.custom-tags-only != 'true' && 'type=semver,pattern={{major}}.{{minor}}' || '' }}
+          ${{ inputs.custom-tags-only != 'true' && 'type=semver,pattern={{major}}' || '' }}
+          ${{ inputs.custom-tags-only != 'true' && 'type=raw,value=latest,enable={{is_default_branch}}' || '' }}
+          ${{ inputs.custom-tags-only != 'true' && inputs.enable-sha-tags == 'true' && 'type=sha,format=long,priority=1001' || '' }}
           ${{ inputs.tags }}
         labels: |
           org.opencontainers.image.source=https://github.com/${{ inputs.organization }}/${{ inputs.repository }}
